@@ -1,5 +1,8 @@
 # Galois Bipartite Filter (GBF)
 
+[![CI](https://github.com/ElVec1o/GBF-NEON/actions/workflows/ci.yml/badge.svg)](https://github.com/ElVec1o/GBF-NEON/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A C++17 approximate set-membership filter. Variant of the Ribbon Filter
 (Dillinger & Walzer 2021); the contribution here is engineering — sharded
 parallel build, batch prefetch, mmap zero-copy load, FastFilter-compatible
