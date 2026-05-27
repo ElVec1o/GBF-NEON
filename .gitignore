@@ -1,0 +1,13 @@
+build/
+build-fuzz/
+.claude/
+venv/
+.DS_Store
+*.o
+*.a
+*.so
+*.dylib
+__pycache__/
+*.pyc
+*.bin
+compile_commands.json

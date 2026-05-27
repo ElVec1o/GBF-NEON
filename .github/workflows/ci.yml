@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:    # manual "Run workflow" button in GitHub UI
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} / ${{ matrix.cc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            label: linux-gcc
+          - os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            label: linux-clang
+          # macos-latest excluded from default CI: 10× minute multiplier on
+          # private-repo free tier. Re-enable manually with workflow_dispatch
+          # or run locally on the M2 dev box.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          uname -a
+          ${{ matrix.cxx }} --version
+          cmake --version
+
+      - name: Configure (Release)
+        env:
+          CC:  ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Run gbf_test
+        run: ./build/gbf_test | tee gbf_test.out
+
+      - name: Run test_c_api
+        run: ./build/test_c_api | tee test_c_api.out
+
+      - name: Run gbf_bench
+        run: ./build/gbf_bench | tee gbf_bench.out
+
+      - name: Run bench_vs (head-to-head vs blocked Bloom)
+        run: ./build/bench_vs | tee bench_vs.out
+
+      - name: Upload bench output
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ matrix.label }}
+          path: |
+            gbf_test.out
+            test_c_api.out
+            gbf_bench.out
+            bench_vs.out
+          if-no-files-found: error

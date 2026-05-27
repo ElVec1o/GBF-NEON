@@ -1,0 +1,22 @@
+# Confirms GBF compiles and tests pass on linux/amd64.
+#
+# IMPORTANT: when this image is built on an Apple Silicon host via
+# `--platform linux/amd64`, the container runs under QEMU emulation. Any
+# performance numbers measured inside this container are MEANINGLESS. Use
+# this image strictly for build + correctness verification.
+FROM --platform=linux/amd64 ubuntu:24.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        g++ cmake ninja-build ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY CMakeLists.txt ./
+COPY src   ./src
+COPY tests ./tests
+COPY fuzz  ./fuzz
+
+RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build
+
+CMD ["./build/gbf_test"]
